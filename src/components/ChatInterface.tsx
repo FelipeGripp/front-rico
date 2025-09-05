@@ -66,21 +66,26 @@ export function ChatInterface() {
     } : conv));
     setIsLoading(true);
 
-    // Simulate AI response (replace with actual AI integration)
-    setTimeout(() => {
-      const assistantMessage: Message = {
-        id: generateId(),
-        content: `Olá! Entendo sua dúvida sobre investimentos. Como especialista do curso "Rico por conta própria", posso te ajudar com:\n\n• Estratégias de investimento\n• Análise de ativos\n• Gestão de riscos\n• Planejamento financeiro\n\nPoderia dar mais detalhes sobre o que você gostaria de saber?`,
-        role: "assistant",
-        timestamp: new Date()
-      };
-      setConversations(prev => prev.map(conv => conv.id === activeConversationId ? {
-        ...conv,
-        messages: [...conv.messages, assistantMessage],
-        lastMessage: assistantMessage.content.slice(0, 50) + "..."
-      } : conv));
-      setIsLoading(false);
-    }, 1000);
+    // TODO: Integrar com seu assistente de IA aqui
+    // Exemplo de onde chamar sua API:
+    // try {
+    //   const response = await callYourAIAssistant(content);
+    //   const assistantMessage: Message = {
+    //     id: generateId(),
+    //     content: response.content,
+    //     role: "assistant",
+    //     timestamp: new Date()
+    //   };
+    //   setConversations(prev => prev.map(conv => conv.id === activeConversationId ? {
+    //     ...conv,
+    //     messages: [...conv.messages, assistantMessage],
+    //     lastMessage: assistantMessage.content.slice(0, 50) + "..."
+    //   } : conv));
+    // } catch (error) {
+    //   console.error('Erro ao chamar IA:', error);
+    // } finally {
+    //   setIsLoading(false);
+    // }
   };
   const handleConversationSelect = (id: string) => {
     setActiveConversationId(id);
