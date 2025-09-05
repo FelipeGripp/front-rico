@@ -5,14 +5,12 @@ import { ChatSidebar } from "./ChatSidebar";
 import { ChatMessage } from "./ChatMessage";
 import { ChatInput } from "./ChatInput";
 import { ScrollArea } from "@/components/ui/scroll-area";
-
 interface Message {
   id: string;
   content: string;
   role: "user" | "assistant";
   timestamp: Date;
 }
-
 interface Conversation {
   id: string;
   title: string;
@@ -20,25 +18,21 @@ interface Conversation {
   createdAt: Date;
   messages: Message[];
 }
-
 export function ChatInterface() {
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [activeConversationId, setActiveConversationId] = useState<string>();
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-
   const activeConversation = conversations.find(c => c.id === activeConversationId);
-
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    messagesEndRef.current?.scrollIntoView({
+      behavior: "smooth"
+    });
   };
-
   useEffect(() => {
     scrollToBottom();
   }, [activeConversation?.messages]);
-
   const generateId = () => Math.random().toString(36).substring(7);
-
   const createNewConversation = () => {
     const newId = generateId();
     const newConversation: Conversation = {
@@ -51,13 +45,11 @@ export function ChatInterface() {
     setConversations(prev => [newConversation, ...prev]);
     setActiveConversationId(newId);
   };
-
   const handleSendMessage = async (content: string) => {
     if (!activeConversationId) {
       createNewConversation();
       return;
     }
-
     const userMessage: Message = {
       id: generateId(),
       content,
@@ -66,17 +58,12 @@ export function ChatInterface() {
     };
 
     // Add user message
-    setConversations(prev => prev.map(conv => 
-      conv.id === activeConversationId 
-        ? { 
-            ...conv, 
-            messages: [...conv.messages, userMessage],
-            title: conv.messages.length === 0 ? content.slice(0, 50) + "..." : conv.title,
-            lastMessage: content
-          }
-        : conv
-    ));
-
+    setConversations(prev => prev.map(conv => conv.id === activeConversationId ? {
+      ...conv,
+      messages: [...conv.messages, userMessage],
+      title: conv.messages.length === 0 ? content.slice(0, 50) + "..." : conv.title,
+      lastMessage: content
+    } : conv));
     setIsLoading(true);
 
     // Simulate AI response (replace with actual AI integration)
@@ -84,28 +71,20 @@ export function ChatInterface() {
       const assistantMessage: Message = {
         id: generateId(),
         content: `Olá! Entendo sua dúvida sobre investimentos. Como especialista do curso "Rico por conta própria", posso te ajudar com:\n\n• Estratégias de investimento\n• Análise de ativos\n• Gestão de riscos\n• Planejamento financeiro\n\nPoderia dar mais detalhes sobre o que você gostaria de saber?`,
-        role: "assistant", 
+        role: "assistant",
         timestamp: new Date()
       };
-
-      setConversations(prev => prev.map(conv => 
-        conv.id === activeConversationId 
-          ? { 
-              ...conv, 
-              messages: [...conv.messages, assistantMessage],
-              lastMessage: assistantMessage.content.slice(0, 50) + "..."
-            }
-          : conv
-      ));
-      
+      setConversations(prev => prev.map(conv => conv.id === activeConversationId ? {
+        ...conv,
+        messages: [...conv.messages, assistantMessage],
+        lastMessage: assistantMessage.content.slice(0, 50) + "..."
+      } : conv));
       setIsLoading(false);
     }, 1000);
   };
-
   const handleConversationSelect = (id: string) => {
     setActiveConversationId(id);
   };
-
   const handleDeleteConversation = (id: string) => {
     setConversations(prev => prev.filter(conv => conv.id !== id));
     if (activeConversationId === id) {
@@ -113,17 +92,9 @@ export function ChatInterface() {
       setActiveConversationId(remaining[0]?.id);
     }
   };
-
-  return (
-    <SidebarProvider defaultOpen={true}>
+  return <SidebarProvider defaultOpen={true}>
       <div className="min-h-screen w-full flex bg-chat-background">
-        <ChatSidebar
-          conversations={conversations}
-          activeConversationId={activeConversationId}
-          onConversationSelect={handleConversationSelect}
-          onNewConversation={createNewConversation}
-          onDeleteConversation={handleDeleteConversation}
-        />
+        <ChatSidebar conversations={conversations} activeConversationId={activeConversationId} onConversationSelect={handleConversationSelect} onNewConversation={createNewConversation} onDeleteConversation={handleDeleteConversation} />
         
         <div className="flex-1 flex flex-col">
           {/* Header */}
@@ -139,39 +110,22 @@ export function ChatInterface() {
                 </div>
               </div>
               
-              <div className="hidden md:flex items-center gap-4 text-sm text-muted-foreground">
-                <div className="flex items-center gap-1">
-                  <DollarSign className="h-4 w-4" />
-                  <span>Investimentos</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <Target className="h-4 w-4" />
-                  <span>Estratégias</span>
-                </div>
-              </div>
+              
             </div>
           </header>
 
           {/* Main Content */}
           <div className="flex-1 flex flex-col">
-            {activeConversation ? (
-              <>
+            {activeConversation ? <>
                 <ScrollArea className="flex-1">
                   <div className="space-y-4 p-4">
-                    {activeConversation.messages.map((message) => (
-                      <ChatMessage key={message.id} message={message} />
-                    ))}
+                    {activeConversation.messages.map(message => <ChatMessage key={message.id} message={message} />)}
                     <div ref={messagesEndRef} />
                   </div>
                 </ScrollArea>
                 
-                <ChatInput
-                  onSendMessage={handleSendMessage}
-                  isLoading={isLoading}
-                />
-              </>
-            ) : (
-              <div className="flex-1 flex items-center justify-center">
+                <ChatInput onSendMessage={handleSendMessage} isLoading={isLoading} />
+              </> : <div className="flex-1 flex items-center justify-center">
                 <div className="text-center max-w-md mx-auto p-8">
                   <TrendingUp className="h-16 w-16 mx-auto text-primary mb-6" />
                   <h2 className="text-3xl font-bold text-foreground mb-4">
@@ -212,18 +166,12 @@ export function ChatInterface() {
                   </div>
                   
                   <div className="mt-8">
-                    <ChatInput
-                      onSendMessage={handleSendMessage}
-                      isLoading={isLoading}
-                      placeholder="Qual sua dúvida sobre investimentos?"
-                    />
+                    <ChatInput onSendMessage={handleSendMessage} isLoading={isLoading} placeholder="Qual sua dúvida sobre investimentos?" />
                   </div>
                 </div>
-              </div>
-            )}
+              </div>}
           </div>
         </div>
       </div>
-    </SidebarProvider>
-  );
+    </SidebarProvider>;
 }
