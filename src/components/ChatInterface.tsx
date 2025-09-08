@@ -88,7 +88,7 @@ export function ChatInterface() {
 
     try {
       // Faz chamada para o backend Flask
-      const response = await fetch("http://127.0.0.1:5000/responder", {
+      const response = await fetch("https://assistente-ia-curso.onrender.com/responder", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
