@@ -12,6 +12,7 @@ interface Message {
   role: "user" | "assistant";
   timestamp: Date;
 }
+
 interface Conversation {
   id: string;
   title: string;
@@ -53,12 +54,14 @@ export function ChatInterface() {
     };
     setConversations((prev) => [newConversation, ...prev]);
     setActiveConversationId(newId);
+    return newId;
   };
 
   const handleSendMessage = async (content: string) => {
-    if (!activeConversationId) {
-      createNewConversation();
-      return;
+    let conversationId = activeConversationId;
+
+    if (!conversationId) {
+      conversationId = createNewConversation();
     }
 
     const userMessage: Message = {
@@ -68,10 +71,10 @@ export function ChatInterface() {
       timestamp: new Date(),
     };
 
-    // Adiciona a mensagem do usuário
+    // Add user message
     setConversations((prev) =>
       prev.map((conv) =>
-        conv.id === activeConversationId
+        conv.id === conversationId
           ? {
               ...conv,
               messages: [...conv.messages, userMessage],
@@ -87,47 +90,53 @@ export function ChatInterface() {
     setIsLoading(true);
 
     try {
-      // Faz chamada para o backend Flask
-      const response = await fetch("https://assistente-ia-curso.onrender.com/responder", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ pergunta: content }),
-      });
+      const response = await fetch(
+        "https://assistente-ia-curso.onrender.com/responder",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ pergunta: content }),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Erro ao se conectar com o servidor");
+      }
 
       const data = await response.json();
 
       const assistantMessage: Message = {
         id: generateId(),
-        content: data.resposta || "Não consegui gerar uma resposta no momento.",
+        content: data.resposta || "Não consegui obter resposta no momento.",
         role: "assistant",
         timestamp: new Date(),
       };
 
       setConversations((prev) =>
         prev.map((conv) =>
-          conv.id === activeConversationId
+          conv.id === conversationId
             ? {
                 ...conv,
                 messages: [...conv.messages, assistantMessage],
-                lastMessage:
-                  assistantMessage.content.slice(0, 50) + "...",
+                lastMessage: assistantMessage.content.slice(0, 50) + "...",
               }
             : conv
         )
       );
     } catch (error) {
-      console.error("Erro ao chamar backend:", error);
+      console.error(error);
       const errorMessage: Message = {
         id: generateId(),
-        content: "❌ Erro ao conectar com o servidor. Verifique o backend.",
+        content: "⚠️ Erro ao conectar com o servidor. Tente novamente.",
         role: "assistant",
         timestamp: new Date(),
       };
+
       setConversations((prev) =>
         prev.map((conv) =>
-          conv.id === activeConversationId
+          conv.id === conversationId
             ? {
                 ...conv,
                 messages: [...conv.messages, errorMessage],
@@ -251,6 +260,7 @@ export function ChatInterface() {
                     </div>
                   </div>
 
+                  {/* Input inicial dispara mensagem real */}
                   <div className="mt-8">
                     <ChatInput
                       onSendMessage={handleSendMessage}
