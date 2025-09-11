@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { TrendingUp, DollarSign, Target } from "lucide-react";
+import { TrendingUp, DollarSign, Target, ArrowDown } from "lucide-react";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { ChatSidebar } from "./ChatSidebar";
 import { ChatMessage } from "./ChatMessage";
@@ -25,7 +25,10 @@ export function ChatInterface() {
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [activeConversationId, setActiveConversationId] = useState<string>();
   const [isLoading, setIsLoading] = useState(false);
+  const [showScrollButton, setShowScrollButton] = useState(false);
+
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const scrollAreaRef = useRef<HTMLDivElement>(null);
 
   const activeConversation = conversations.find(
     (c) => c.id === activeConversationId
@@ -40,6 +43,21 @@ export function ChatInterface() {
   useEffect(() => {
     scrollToBottom();
   }, [activeConversation?.messages]);
+
+  const handleScroll = () => {
+    if (!scrollAreaRef.current) return;
+    const { scrollTop, scrollHeight, clientHeight } = scrollAreaRef.current;
+    const isNearBottom = scrollHeight - scrollTop - clientHeight < 200;
+    setShowScrollButton(!isNearBottom);
+  };
+
+  useEffect(() => {
+    const scrollElement = scrollAreaRef.current;
+    if (scrollElement) {
+      scrollElement.addEventListener("scroll", handleScroll);
+      return () => scrollElement.removeEventListener("scroll", handleScroll);
+    }
+  }, []);
 
   const generateId = () => Math.random().toString(36).substring(7);
 
@@ -71,7 +89,6 @@ export function ChatInterface() {
       timestamp: new Date(),
     };
 
-    // Add user message
     setConversations((prev) =>
       prev.map((conv) =>
         conv.id === conversationId
@@ -94,16 +111,12 @@ export function ChatInterface() {
         "https://assistente-ia-curso.onrender.com/responder",
         {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ pergunta: content }),
         }
       );
 
-      if (!response.ok) {
-        throw new Error("Erro ao se conectar com o servidor");
-      }
+      if (!response.ok) throw new Error("Erro ao se conectar com o servidor");
 
       const data = await response.json();
 
@@ -173,7 +186,7 @@ export function ChatInterface() {
           onDeleteConversation={handleDeleteConversation}
         />
 
-        <div className="flex-1 flex flex-col">
+        <div className="flex-1 flex flex-col relative">
           {/* Header */}
           <header className="border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-10">
             <div className="flex items-center justify-between p-4">
@@ -193,7 +206,7 @@ export function ChatInterface() {
           <div className="flex-1 flex flex-col">
             {activeConversation ? (
               <>
-                <ScrollArea className="flex-1">
+                <ScrollArea className="flex-1" ref={scrollAreaRef}>
                   <div className="space-y-4 p-4">
                     {activeConversation.messages.map((message) => (
                       <ChatMessage key={message.id} message={message} />
@@ -202,10 +215,13 @@ export function ChatInterface() {
                   </div>
                 </ScrollArea>
 
-                <ChatInput
-                  onSendMessage={handleSendMessage}
-                  isLoading={isLoading}
-                />
+                {/* Barra fixa */}
+                <div className="border-t border-border bg-background p-2 sticky bottom-0">
+                  <ChatInput
+                    onSendMessage={handleSendMessage}
+                    isLoading={isLoading}
+                  />
+                </div>
               </>
             ) : (
               <div className="flex-1 flex items-center justify-center">
@@ -260,7 +276,7 @@ export function ChatInterface() {
                     </div>
                   </div>
 
-                  {/* Input inicial dispara mensagem real */}
+                  {/* Input inicial para começar conversa */}
                   <div className="mt-8">
                     <ChatInput
                       onSendMessage={handleSendMessage}
@@ -272,6 +288,16 @@ export function ChatInterface() {
               </div>
             )}
           </div>
+
+          {/* Botão flutuante de scroll */}
+          {showScrollButton && (
+            <button
+              onClick={scrollToBottom}
+              className="absolute bottom-20 right-6 bg-primary text-white p-2 rounded-full shadow-lg hover:bg-primary/80 transition"
+            >
+              <ArrowDown className="h-5 w-5" />
+            </button>
+          )}
         </div>
       </div>
     </SidebarProvider>
