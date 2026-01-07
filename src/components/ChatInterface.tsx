@@ -108,7 +108,7 @@ export function ChatInterface() {
 
     try {
       const response = await fetch(
-        "https://assistente-ia-curso.onrender.com/responder",
+        "https://assistente-ia-curso.onrender.com",
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
